@@ -23,7 +23,7 @@ formula: EMA = alpha * source + (1 - alpha) * EMA[1], where alpha = 2 / (length 
 .[pivot](https://github.com/mohder79/indicators/blob/main/Pivot):
 .
 pivotlow & pivothigh
-.
+   
 ![newplot (1)](https://user-images.githubusercontent.com/102425717/179373724-0809672b-b4e8-4fe3-b519-90eaa2e18293.png)
 
 
