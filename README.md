@@ -5,7 +5,7 @@
 
 
 
-#  [**#sma**](https://github.com/mohder79/indicators/blob/main/sma.py):
+#  [**sma**](https://github.com/mohder79/indicators/blob/main/sma.py):
 .
 ![newplot (4)](https://user-images.githubusercontent.com/102425717/179373947-69baba66-2154-4791-a328-22ed392089c3.png)
 .
@@ -13,7 +13,7 @@
 
 
 
-.[ema](https://github.com/mohder79/indicators/blob/main/ema.py):
+# [**ema**](https://github.com/mohder79/indicators/blob/main/ema.py):
 
 .
 formula: EMA = alpha * source + (1 - alpha) * EMA[1], where alpha = 2 / (length + 1).
@@ -23,7 +23,7 @@ formula: EMA = alpha * source + (1 - alpha) * EMA[1], where alpha = 2 / (length 
 
 .
 
-.[pivot](https://github.com/mohder79/indicators/blob/main/Pivot):
+# [**pivot**](https://github.com/mohder79/indicators/blob/main/Pivot):
 .
 pivotlow & pivothigh
    
