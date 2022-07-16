@@ -1,11 +1,11 @@
 # { import the libraries
-from cProfile import label
 import ccxt
 from datetime import datetime
 import pandas as pd
 import pandas_ta as ta
 import numpy as np
-from matplotlib import pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 # }
 
 # { show all rows and column
@@ -74,11 +74,31 @@ BTC.loc[BTC['emata'] == BTC['ema2'], 'equal'] = 'true'  # test for equal
 
 print(BTC)
 
-# { plot the data
-plt.plot(BTC.close, label='closes price')
-plt.plot(BTC.ema2, label='EMA')
-plt.xlabel('time')
-plt.ylabel('price')
-plt.legend()
-plt.show()
+
+# {  plot the data
+#fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+fig = go.Figure()
+
+fig.add_trace(go.Candlestick(x=BTC.index,
+                             open=BTC['open'],
+                             high=BTC['high'],
+                             low=BTC['low'],
+                             close=BTC['close'],
+                             showlegend=False))
+
+fig.add_trace(go.Scatter(x=BTC.index,
+                         y=BTC['ema1'],
+                         opacity=0.7,
+                         line=dict(color='black', width=2),
+                         name='ema'))
+
+
+# colors = ['green' if row['open'] - row['close'] >= 0
+#           else 'red' for index, row in BTC.iterrows()]
+# fig.add_trace(go.Bar(x=BTC.index,
+#                      y=BTC['volume'],
+#                      marker_color=colors
+#                      ), row=2, col=1)
+
+fig.show()
 # }
