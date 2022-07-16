@@ -1,0 +1,121 @@
+# { import the libraries
+import ccxt
+from datetime import datetime
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+# }
+
+# { show all rows and column
+pd.set_option('display.max_rows', None)
+#pd.set_option('display.max_column', None)
+# }
+
+# { load exchange
+exchange = ccxt.binance({
+    'options': {
+        'adjustForTimeDifference': True,
+    },
+
+})
+# }
+
+
+# { load data as function
+def fetch(symbol: str, timeframe: str, limit: int):
+    print(f"Fetching {symbol} new bars for {datetime.now().isoformat()}")
+
+    bars = exchange.fetch_ohlcv(
+        symbol, timeframe=timeframe, limit=limit)  # fetch ohlcv
+    df = pd.DataFrame(bars[:-1], columns=['timestamp',
+                      'open', 'high', 'low', 'close', 'volume'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    df = df.set_index(pd.DatetimeIndex(df.timestamp))
+    return df
+# }
+
+# }
+
+
+# { pivothigh function
+def PIVOTHIGH(data: str, src: str, Length: int):
+    high = data[src].rolling(Length).max().shift().fillna(np.NAN)
+    shifted_high = high.shift(3)
+    pivothigh = np.where(
+        (shifted_high == high), high, np.NAN)
+
+    return pivothigh
+# }
+
+
+# { pivotlow function
+def PIVOTlow(data: str, src: str, Length: int):
+    low = data[src].rolling(Length).min().shift().fillna(np.NAN)
+    shifted_low = low.shift(3)
+    pivotlow = np.where(
+        (shifted_low == low), low, np.NAN)
+
+    return pivotlow
+# }
+
+
+def ohlc(data: str):
+    return (data['open']+data['high']+data['low']+data['close'])/4
+
+
+# { set the symbol for data function
+BTC = fetch('BTC/USDT', '1h', 1000)
+# }
+
+
+# { pivothigh
+BTC['pivothigh'] = PIVOTHIGH(BTC, 'high', 14)
+
+BTC['pivothighfill'] = BTC['pivothigh'].fillna(method='ffill')
+# }
+
+
+# { pivotlow
+BTC['pivotlow'] = PIVOTlow(BTC, 'low', 14)
+
+BTC['pivotlowfill'] = BTC['pivotlow'].fillna(method='ffill')
+# }
+
+
+# print()
+
+
+# {  plot the data
+#fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+fig = go.Figure()
+
+fig.add_trace(go.Candlestick(x=BTC.index,
+                             open=BTC['open'],
+                             high=BTC['high'],
+                             low=BTC['low'],
+                             close=BTC['close'],
+                             showlegend=False))
+
+fig.add_trace(go.Scatter(x=BTC.index,
+                         y=BTC['pivothigh'],
+                         opacity=0.7,
+                         line=dict(color='green', width=2),
+                         name='pivothigh'))
+
+fig.add_trace(go.Scatter(x=BTC.index,
+                         y=BTC['pivotlow'],
+                         opacity=0.7,
+                         line=dict(color='red', width=2),
+                         name='pivotlow'))
+
+
+# colors = ['green' if row['open'] - row['close'] >= 0
+#           else 'red' for index, row in BTC.iterrows()]
+# fig.add_trace(go.Bar(x=BTC.index,
+#                      y=BTC['volume'],
+#                      marker_color=colors
+#                      ), row=2, col=1)
+
+fig.show()
+# }
