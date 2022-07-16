@@ -2,7 +2,7 @@
 **I'M going to Write indicators here**
 
 
-. [**# sma**](https://github.com/mohder79/indicators/blob/main/sma.py):
+. [**#sma**](https://github.com/mohder79/indicators/blob/main/sma.py):
 .
 ![newplot (4)](https://user-images.githubusercontent.com/102425717/179373947-69baba66-2154-4791-a328-22ed392089c3.png)
 .
