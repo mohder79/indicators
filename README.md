@@ -25,7 +25,7 @@
 # [**pivot**](https://github.com/mohder79/indicators/blob/main/Pivot):
 <br/>
 > pivotlow & pivothigh
-   <br/>
+<br/>
 ![newplot (1)](https://user-images.githubusercontent.com/102425717/179373724-0809672b-b4e8-4fe3-b519-90eaa2e18293.png)
 
 
