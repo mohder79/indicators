@@ -1,12 +1,13 @@
 # { import the libraries
-from cProfile import label
 import ccxt
 from datetime import datetime
 import pandas as pd
 import pandas_ta as ta
 import numpy as np
-from matplotlib import pyplot as plt
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 # }
+
 
 # { show all rows and column
 #pd.set_option('display.max_rows', None)
@@ -57,11 +58,30 @@ BTC['ta sma'] = ta.sma(BTC.close, 30)  # use pandas ta lib for calculate sma
 print(BTC)
 
 
-# { plot the data
-plt.plot(BTC.close, label='closes price')
-plt.plot(BTC.sma, label='SMA')
-plt.xlabel('time')
-plt.ylabel('price')
-plt.legend()
-plt.show()
+# {  plot the data
+#fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
+fig = go.Figure()
+
+fig.add_trace(go.Candlestick(x=BTC.index,
+                             open=BTC['open'],
+                             high=BTC['high'],
+                             low=BTC['low'],
+                             close=BTC['close'],
+                             showlegend=False))
+
+fig.add_trace(go.Scatter(x=BTC.index,
+                         y=BTC['sma'],
+                         opacity=0.7,
+                         line=dict(color='LightSkyBlue', width=2),
+                         name='sma'))
+
+
+# colors = ['green' if row['open'] - row['close'] >= 0
+#           else 'red' for index, row in BTC.iterrows()]
+# fig.add_trace(go.Bar(x=BTC.index,
+#                      y=BTC['volume'],
+#                      marker_color=colors
+#                      ), row=2, col=1)
+
+fig.show()
 # }
