@@ -13,8 +13,8 @@
 
 # [**ema**](https://github.com/mohder79/indicators/blob/main/ema.py):
 
-<br/>
-> formula: EMA = alpha * source + (1 - alpha) * EMA[1], where alpha = 2 / (length + 1).
+> formula: EMA = alpha * source + (1 - alpha) * EMA[1], where alpha = 2 / (length + 1). <br/>
+
 
 ![newplot (2)](https://user-images.githubusercontent.com/102425717/179373801-4bb3438a-9ac3-4243-b04e-0e76658f1c2a.png)
 <br/>
