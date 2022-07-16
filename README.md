@@ -1,8 +1,7 @@
 # indicators
 **I'M going to Write indicators here**
 
-# **I'M going to Write indicators here**
-
+<br/>
 
 
 #  [**sma**](https://github.com/mohder79/indicators/blob/main/sma.py):
