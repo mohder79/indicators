@@ -1,5 +1,5 @@
 # indicators
-I'M going to Write indicators here 
+** I'M going to Write indicators here **
 
 
 . [**# sma**](https://github.com/mohder79/indicators/blob/main/sma.py):
