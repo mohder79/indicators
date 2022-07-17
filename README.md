@@ -27,7 +27,7 @@
 
 ![newplot (1)](https://user-images.githubusercontent.com/102425717/179373724-0809672b-b4e8-4fe3-b519-90eaa2e18293.png) <br/>
 
-# [**Squeez momentom**](https://github.com/mohder79/indicators/blob/main/Pivot):<br/>
+# [**Squeez momentom**](https://github.com/mohder79/indicators/blob/main/squeeze%20momentum(BBband%2CKeltner%20ch%20%2C%20ATR%20).py):<br/>
 
 > Squeez momentom & bollinger band & Keltner Channels & ATR <br/>
 
