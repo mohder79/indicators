@@ -97,7 +97,7 @@ def ATR(data: str = 'BTC', length: int = 20):
 # } https://www.investopedia.com/terms/k/keltnerchannel.asp
 
 
-# { Keltner channel (this calculetion is difrent and like Squeeze Momentum Indicator by [LazyBear] in tradingview )
+# { Keltner channel (this calculetion is difrent and like Squeeze Momentum Indicator [LazyBear] in tradingview )
 def UPPERKC(data: str = 'BTC', src: str = 'close', length: int = 20, multKC: float = 1.5):
     ma = SMA(data, src, length)
     rangema = ATR(data, length)
@@ -166,9 +166,9 @@ berish = BTC[(BTC['in_sqz'] == False) & (
     BTC['close'] < BTC['middelband'])]
 not_berish = BTC[BTC.index.isin(berish.index)].index
 
-billish = BTC[(BTC['in_sqz'] == False) & (
+bulish = BTC[(BTC['in_sqz'] == False) & (
     BTC['close'] > BTC['middelband'])]
-not_billish = BTC[BTC.index.isin(billish.index)].index
+not_bulish = BTC[BTC.index.isin(bulish.index)].index
 
 sqz = BTC[BTC['in_sqz'] == True]
 not_sqz = BTC[BTC.index.isin(sqz.index)].index
@@ -197,9 +197,9 @@ fig.add_traces(go.Candlestick(x=berish.index,
                               decreasing_line_color='DarkRed',
                               name='Berish momentum(+/-)'))
 
-fig.add_traces(go.Candlestick(x=billish.index,
-                              open=billish['open'], high=billish['high'],
-                              low=billish['low'], close=billish['close'],
+fig.add_traces(go.Candlestick(x=bulish.index,
+                              open=bulish['open'], high=bulish['high'],
+                              low=bulish['low'], close=bulish['close'],
                               increasing_line_color='SpringGreen',
                               decreasing_line_color='DarkGreen',
                               name='Bulish momentum(+/-)'))
