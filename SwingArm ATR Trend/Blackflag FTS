@@ -1,0 +1,249 @@
+import ccxt
+from pprint import pprint
+import time
+from datetime import datetime
+import pandas as pd
+import pandas_ta as ta
+import numpy as np
+# import ta
+
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_column', None)
+
+
+exchange = ccxt.binance({
+    'options': {
+        'adjustForTimeDifference': True,
+    },
+
+})
+symbol = 'APE/USDT'  # my symbol
+# inputs{
+ATRPeriod = 28
+ATRFactor = 5
+trailType = 'modified'  # or 'unmodified'
+show_fib_entries = True
+# }
+Trend = 1
+
+
+print(f"Fetching new bars for {datetime.now().isoformat()}")
+bars = exchange.fetch_ohlcv(
+    symbol, timeframe='1d', limit=999)  # fetch ohlcv
+df = pd.DataFrame(bars[:-1], columns=['timestamp',
+                  'open', 'high', 'low', 'close', 'volume'])
+df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+
+
+# data = "F:\python\Bitstamp_BTCUSD_d.csv"  # data file address
+# Columns = ['date', 'open', 'high', 'low', 'close',
+#            'Volume USD']  # column you want to pandas read
+
+# df = pd.read_csv(data, sep=',', usecols=Columns, header=1)
+# # sep= separator (open your data file with notpad to see separator)
+# # usecols = your column
+# # header = Row number(s) to use as the column names, and the start of the data
+
+# # like line 13 but in this code we dont reverse number of rows
+# df = df[::-1].reset_index(drop=True)
+# df = df.shift(1)
+
+# { previous ohlc
+df['pre_open'] = df['open'].shift(1)
+df['pre_high'] = df['high'].shift(1)
+df['pre_low'] = df['low'].shift(1)
+df['pre_close'] = df['close'].shift(1)
+# }
+
+# { line 31
+
+
+def HILO(data: str, high: str, low: str, ATRPeriod: int = ATRPeriod):
+    hi_minus_lo = data[high]-data[low]
+    atr = 1.5 * hi_minus_lo.rolling(window=ATRPeriod).mean().fillna(0)
+    hilo = np.zeros(np.size(data[high]))
+    for i in range(0, np.size(data[high])):
+        hilo[i] = min(hi_minus_lo[i], atr[i])
+    return hilo
+
+
+df['HiLo'] = HILO(df, 'high', 'low')
+# }
+# { line 33 HiLo
+
+
+def HREF(data, high, low, close):
+    href = np.zeros(np.size(data[high]))
+
+    for i in range(1, np.size(data[high])):
+        if df[low][i] <= df[high][i-1]:
+            href[i] = df[high][i]-df[close][i-1]
+        else:
+            href[i] = (((data[high][i]) - (data[close][i-1])) -
+                       0.5) * ((data[low][i])-(data[high][i-1]))
+    return href
+
+
+df['HRef'] = HREF(df, 'high', 'low', 'close')
+
+
+# }
+# { line 37 LRef
+def LREF(data: str, high: str, low: str, close: str):
+    lref = np.zeros(np.size(data[high]))
+    for i in range(1, np.size(data[high])):
+        if df[high][i] >= df[low][i-1]:
+            lref[i] = df[close][i-1] - df[low][i]
+        else:
+            lref[i] = (((data[close][i-1]) - (data[low])) - 0.5) * \
+                ((data[low][i-1])-(data[high]))
+    return lref
+
+
+df['LRef'] = LREF(df, 'high', 'low', 'close')
+# }
+
+# { line 41 trueRange HiLo,
+
+
+def TRUERANGE(data: str, high: str, low: str, close: str, LRef: str, HRef: str, HiLo: str):
+    if trailType == 'modified':
+        truerange = data[[HRef, LRef, HiLo]].max(axis=1)
+    elif trailType == 'unmodified':
+        truerange = np.zeros(np.size(data[high]))
+        h_l = np.zeros(np.size(data[high]))
+        h_prec = np.zeros(np.size(data[high]))
+        l_prec = np.zeros(np.size(data[high]))
+        for i in range(1, np.size(data[high])):
+            h_l[i] = df[high][i] - df[low][i]
+            h_prec[i] = abs(df[high][i] - df[close][i-1])
+            l_prec[i] = abs(df[low][i] - df[close][i-1])
+            truerange[i] = max(h_l[i], h_prec[i], l_prec[i])
+        return truerange
+    return truerange
+
+
+df['trueRange'] = TRUERANGE(df, 'high', 'low', 'close', 'LRef', 'HRef', 'HiLo')
+# }
+# { line 49
+
+
+# def Wild_ma(_src, _malength=28):
+
+#     _wild = np.zeros(np.size(_src))
+#     _wild[0] = 0
+
+#     for i in range(1, np.size(_src)):
+#         _wild[i] = _wild[i-1] + ((_src[i] - _wild[i-1]) / _malength)
+
+#     return _wild
+# _wild := nz(_wild[1]) + (_src - nz(_wild[1])) / _malength
+
+
+def LOSS(data: str, trueRange: str, ATRPeriod: int = ATRPeriod, ATRFactor: int = ATRFactor):
+    _wild = np.zeros(np.size(data['trueRange']))
+    _wild[0] = 0
+
+    for i in range(1, np.size(data['trueRange'])):
+        _wild[i] = _wild[i-1] + ((data[trueRange][i] - _wild[i-1]) / ATRPeriod)
+    return ATRFactor * _wild
+
+
+#df['loss'] = ATRFactor * df['wild']
+df['loss'] = LOSS(df, 'trueRange')
+
+print(df[['close', 'loss']])
+
+# }
+df['Up'] = df.close - df.loss
+df['Dn'] = df.close + df.loss
+
+df['_TrendUp'] = df.Up
+df['_TrendDown'] = df.Dn
+
+# { line 58
+
+
+def TRENDUP(data: str, close: str, _TrendUp: str):
+    trendup = np.zeros(np.size(data[close]))
+    trendup[0] = data[_TrendUp][0]
+
+    for i in range(1, np.size(data[close])):
+        if data[close][i-1] > trendup[i-1]:
+            trendup[i] = max(trendup[i-1], data[_TrendUp][i])
+        else:
+            trendup[i] = data[_TrendUp][i]
+    return trendup
+
+
+df['TrendUp'] = TRENDUP(df, 'close', '_TrendUp')
+# }
+
+# { line 59
+
+
+def TRENDDOWN(data: str, close: str, _TrendDown: str):
+    trenddown = np.zeros(np.size(data[close]))
+    trenddown[0] = data[_TrendDown][0]
+
+    for i in range(1, np.size(data[close])):
+        if data[close][i-1] < trenddown[i-1]:
+            trenddown[i] = min(trenddown[i-1], data[_TrendDown][i])
+        else:
+            trenddown[i] = data[_TrendDown][i]
+    return trenddown
+
+
+df['TrendDown'] = TRENDDOWN(df, 'close', '_TrendDown')
+
+
+def TREND(data: str, close: str, TrendDown: str, TrendUp: str):
+    trend = np.zeros(np.size(data[close]))
+    trend[0] = 1
+
+    for i in range(1, np.size(data[close])):
+        if data[close][i] > data[TrendDown][i-1]:
+            trend[i] = 1
+        elif data[close][i] < data[TrendUp][i-1]:
+            trend[i] = -1
+        else:
+            trend[i-1] = 2
+    return(trend)
+
+
+df['Trend'] = TREND(df, 'close', 'TrendDown', 'TrendUp')
+
+# }
+
+#     # { line 57     Trand need preivous Trend up and down .
+#     df['pre_TrendUp'] = df['TrendUp'].shift(1)
+#     df['pre_TrendDown'] = df['TrendDown'].shift(1)
+
+#     df['Trend'] = Trend
+#     df.loc[df['close'] > df['pre_TrendDown'], 'Trend'] = 1
+#     df.loc[df['close'] < df['pre_TrendUp'], 'Trend'] = -1
+#     df.loc[df['close'] < df['pre_TrendDown'],
+#            'Trend'] = df['Trend'].shift(1).fillna(1)
+#     df.loc[df['close'] > df['pre_TrendUp'],
+#            'Trend'] = df['Trend'].shift(1).fillna(1)
+
+#     df['trail'] = np.where(df['Trend'] == 1, df['TrendUp'], df['TrendDown'])
+
+#     # { finde crosses
+#     df.loc[(df['Trend'] > 0), 'signal'] = 1
+
+#     df.loc[(df['Trend'] < 0), 'signal'] = 0
+
+#     df['position'] = df['signal'].diff()
+
+#     df['ex'] = np.where((df['position']) == 1, df.high, np.NAN)
+#     df['ex'] = np.where((df['position']) == -1, df.low, np.NAN)
+#     df['pre_ex'] = df['ex'].shift(1)
+#     df.loc[df['Trend'] == 1, 'ex'] = df[['pre_ex', 'high']].max(axis=1)
+#     df.loc[df['Trend'] == -1, 'ex'] = df[['pre_ex', 'high']].max(axis=1)
+
+# # }
+
+# print(np.round(df.head(10)))  # head data
+
+# print(np.round(df.tail(400), 2))  # tail data
