@@ -4,15 +4,8 @@
 
 
 
+this indicator Written by vsnfnd . im just turned pine script to python
 
-<!-- TradingView Chart BEGIN -->
-<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-<script type="text/javascript">
-var tradingview_embed_options = {};
-tradingview_embed_options.width = '640';
-tradingview_embed_options.height = '400';
-tradingview_embed_options.chart = 'Dxc0Pi3n';
-new TradingView.chart(tradingview_embed_options);
-</script>
-<p><a href="https://www.tradingview.com/script/Dxc0Pi3n-SwingArm-ATR-Trend-Indicator/">SwingArm ATR Trend Indicator</a> by <a href="https://www.tradingview.com/u/vsnfnd/">vsnfnd</a> on <a href="https://www.tradingview.com/">TradingView.com</a></p>
-<!-- TradingView Chart END -->
+
+indicator link in [**tradingview**](https://www.tradingview.com/script/Dxc0Pi3n-SwingArm-ATR-Trend-Indicator/): <br/>
+ 
