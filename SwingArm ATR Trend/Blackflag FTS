@@ -2,6 +2,7 @@
 # website: mohder.com
 # email: mohder1379@gmail.com
 
+
 # { import the libraries
 import ccxt
 from datetime import datetime
@@ -9,21 +10,27 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+pd.options.plotting.backend = "plotly"
 # }
 
+
 # { show all rows and column
-# pd.set_option('display.max_rows', None)
+#pd.set_option('display.max_rows', None)
 # pd.set_option('display.max_column', None)
 # }
 
+
+# {load exchange
 exchange = ccxt.binance({
     'options': {
         'adjustForTimeDifference': True,
     },
-
 })
-symbol = 'APE/USDT'  # my symbol
+# }
+
+
 # inputs{
+symbol = 'BTC/USDT'  # my symbol
 ATRPeriod = 28
 ATRFactor = 5
 trailType = 'modified'  # or 'unmodified'
@@ -33,26 +40,25 @@ fib2Level = 78.6
 fib3Level = 88.6
 # }
 
-print(f"Fetching new bars for {datetime.now().isoformat()}")
-bars = exchange.fetch_ohlcv(
-    symbol, timeframe='1d', limit=999)  # fetch ohlcv
-df = pd.DataFrame(bars[:-1], columns=['timestamp',
-                  'open', 'high', 'low', 'close', 'volume'])
-df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+
+# { load data as function
+def fetch(symbol: str, timeframe: str, limit: int):
+    print(f"Fetching {symbol} new bars for {datetime.now().isoformat()}")
+
+    bars = exchange.fetch_ohlcv(
+        symbol, timeframe=timeframe, limit=limit)  # fetch ohlcv
+    df = pd.DataFrame(bars[:-1], columns=['timestamp',
+                      'open', 'high', 'low', 'close', 'volume'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    #df = df.set_index(pd.DatetimeIndex(df.timestamp))
+    return df
+# }
 
 
-# data = "F:\python\Bitstamp_BTCUSD_d.csv"  # data file address
-# Columns = ['date', 'open', 'high', 'low', 'close',
-#            'Volume USD']  # column you want to pandas read
+# { set the symbol for data function
+df = fetch(symbol, '1d', 999)
+# }
 
-# df = pd.read_csv(data, sep=',', usecols=Columns, header=1)
-# # sep= separator (open your data file with notpad to see separator)
-# # usecols = your column
-# # header = Row number(s) to use as the column names, and the start of the data
-
-# # like line 13 but in this code we dont reverse number of rows
-# df = df[::-1].reset_index(drop=True)
-# df = df.shift(1)
 
 # { previous ohlc
 df['pre_open'] = df['open'].shift(1)
@@ -61,9 +67,8 @@ df['pre_low'] = df['low'].shift(1)
 df['pre_close'] = df['close'].shift(1)
 # }
 
+
 # { line 31
-
-
 def HILO(data: str, high: str, low: str, ATRPeriod: int = ATRPeriod):
     hi_minus_lo = data[high]-data[low]
     atr = 1.5 * hi_minus_lo.rolling(window=ATRPeriod).mean().fillna(0)
@@ -75,9 +80,9 @@ def HILO(data: str, high: str, low: str, ATRPeriod: int = ATRPeriod):
 
 df['HiLo'] = HILO(df, 'high', 'low')
 # }
+
+
 # { line 33 HiLo
-
-
 def HREF(data, high, low, close):
     href = np.zeros(np.size(data[high]))
 
@@ -91,9 +96,9 @@ def HREF(data, high, low, close):
 
 
 df['HRef'] = HREF(df, 'high', 'low', 'close')
-
-
 # }
+
+
 # { line 37 LRef
 def LREF(data: str, high: str, low: str, close: str):
     lref = np.zeros(np.size(data[high]))
@@ -109,9 +114,8 @@ def LREF(data: str, high: str, low: str, close: str):
 df['LRef'] = LREF(df, 'high', 'low', 'close')
 # }
 
+
 # { line 41 trueRange HiLo,
-
-
 def TRUERANGE(data: str, high: str, low: str, close: str, LRef: str, HRef: str, HiLo: str):
     if trailType == 'modified':
         truerange = data[[HRef, LRef, HiLo]].max(axis=1)
@@ -131,9 +135,9 @@ def TRUERANGE(data: str, high: str, low: str, close: str, LRef: str, HRef: str, 
 
 df['trueRange'] = TRUERANGE(df, 'high', 'low', 'close', 'LRef', 'HRef', 'HiLo')
 # }
+
+
 # { line 49
-
-
 def LOSS(data: str, trueRange: str, ATRPeriod: int = ATRPeriod, ATRFactor: int = ATRFactor):
     _wild = np.zeros(np.size(data['trueRange']))
     _wild[0] = 0
@@ -146,14 +150,14 @@ def LOSS(data: str, trueRange: str, ATRPeriod: int = ATRPeriod, ATRFactor: int =
 df['loss'] = LOSS(df, 'trueRange')
 # }
 
+
 # { line 51 , 52
 df['Up'] = df.close - df.loss
 df['Dn'] = df.close + df.loss
 # }
 
+
 # { line 58
-
-
 def TRENDUP(data: str, close: str, Up: str):
     trendup = np.empty(np.size(data[close]))
     trendup[:] = np.nan
@@ -169,9 +173,8 @@ def TRENDUP(data: str, close: str, Up: str):
 df['TrendUp'] = TRENDUP(df, 'close', 'Up')
 # }
 
+
 # { line 59
-
-
 def TRENDDOWN(data: str, close: str, Dn: str):
     trenddown = np.empty(np.size(data[close]))
     trenddown[:] = np.nan
@@ -187,9 +190,8 @@ def TRENDDOWN(data: str, close: str, Dn: str):
 df['TrendDown'] = TRENDDOWN(df, 'close', 'Dn')
 # }
 
+
 # { line 61
-
-
 def TREND(data: str, close: str, TrendDown: str, TrendUp: str):
     trend = np.empty(np.size(data[close]))
     trend[0] = 1
@@ -208,14 +210,13 @@ def TREND(data: str, close: str, TrendDown: str, TrendUp: str):
 df['Trend'] = TREND(df, 'close', 'TrendDown', 'TrendUp')
 # }
 
+
 # { line 62
 df['trail'] = np.where(df['Trend'] == 1, df['TrendUp'], df['TrendDown'])
-
 # }
 
+
 # { line 65
-
-
 def EX(data: str, Trend: str = 'Trend', high: str = 'high', low: str = 'low'):
     ex = np.empty(np.size(data[Trend]))
     ex[:] = np.nan
@@ -234,18 +235,15 @@ def EX(data: str, Trend: str = 'Trend', high: str = 'high', low: str = 'low'):
 
 
 df['ex'] = EX(df)
-
 # }
 
 
 # { line 80
-
 df['state'] = np.where(df['Trend'] == 1, "long", "short")
 # }
 
 
 # { line 86 , 89
-
 df['f1'] = df['ex'] + (df['trail'] - df['ex']) * fib1Level / 100
 df['f2'] = df['ex'] + (df['trail'] - df['ex']) * fib2Level / 100
 df['f3'] = df['ex'] + (df['trail'] - df['ex']) * fib3Level / 100
@@ -253,65 +251,102 @@ df['l100'] = df['trail'] + 0
 # }
 
 
-# { creat two  data frame for fill between f1,f2,f3,l100 we have two color long: green and for short:red
-df['long_f1'] = np.where(df['state'] == "long", df['f1'], np.nan)
-df['short_f1'] = np.where(df['state'] == "short", df['f1'], np.nan)
-df['long_f2'] = np.where(df['state'] == "long", df['f2'], np.nan)
-df['short_f2'] = np.where(df['state'] == "short", df['f2'], np.nan)
-df['long_f3'] = np.where(df['state'] == "long", df['f3'], np.nan)
-df['short_f3'] = np.where(df['state'] == "short", df['f3'], np.nan)
-df['long_l100'] = np.where(df['state'] == "long", df['l100'], np.nan)
-df['short_l100'] = np.where(df['state'] == "short", df['l100'], np.nan)
+# { function to set fill colors
+df['color'] = np.where(df['state'] == "long", 1, 0)
+df['group'] = df['color'].ne(df['color'].shift(1)).cumsum()
+df = df.groupby('group')
+dfs = []
+for name, data in df:
+    dfs.append(data)
+
+
+def fill_df1_df2(color):
+    if color == 1:
+        return 'rgba(0,250,0,0.2)'
+    else:
+        return 'rgba(250,0,0,0.2)'
+
+
+def fill_df2_df3(color):
+    if color == 1:
+        return 'rgba(0,250,0,0.5)'
+    else:
+        return 'rgba(250,0,0,0.5)'
+
+
+def fill_df3_l100(color):
+    if color == 1:
+        return 'rgba(0,250,0,0.7)'
+    else:
+        return 'rgba(250,0,0,0.7)'
+
+
+def ex_color(color):
+    if color == 1:
+        return 'rgb(0, 255, 153)'
+    else:
+        return 'rgb(255, 0, 102)'
+# }
+
+
+# {  plot the data
+#fig = make_subplots(rows=2, cols=1, shared_xaxes=True)
 fig = go.Figure()
 
-fig.add_trace(go.Candlestick(x=df.index,
-                             open=df['open'],
-                             high=df['high'],
-                             low=df['low'],
-                             close=df['close'],
+for df in dfs:
+    fig.add_traces(go.Scatter(x=df.index, y=df.f1,
+                              line=dict(color='rgba(0,0,0,0)'),
+                              showlegend=False))
+
+    fig.add_traces(go.Scatter(x=df.index, y=df.f2,
+                              line=dict(color='rgba(0,0,0,0)'),
+                              fill='tonexty',
+                              fillcolor=fill_df1_df2(df['color'].iloc[0]),
+                              showlegend=False))
+
+for df in dfs:
+    fig.add_traces(go.Scatter(x=df.index, y=df.f2,
+                              line=dict(color='rgba(0,0,0,0)'),
+                              showlegend=False))
+
+    fig.add_traces(go.Scatter(x=df.index, y=df.f3,
+                              line=dict(color='rgba(0,0,0,0)'),
+                              fill='tonexty',
+                              fillcolor=fill_df2_df3(df['color'].iloc[0]),
+                              showlegend=False))
+
+for df in dfs:
+    fig.add_traces(go.Scatter(x=df.index, y=df.f3,
+                              line=dict(color='rgba(0,0,0,0)'),
+                              showlegend=False))
+
+    fig.add_traces(go.Scatter(x=df.index, y=df.l100,
+                              line=dict(color='rgba(0,0,0,0)'),
+                              fill='tonexty',
+                              fillcolor=fill_df3_l100(df['color'].iloc[0]),
+                              showlegend=False))
+    fig.add_trace(go.Candlestick(x=df.index,
+                                 open=df['open'],
+                                 high=df['high'],
+                                 low=df['low'],
+                                 close=df['close'],
+                                 showlegend=False))
+
+
+for df in dfs:
+    fig.add_trace(go.Scatter(x=df.index,
+                             y=df['ex'],
+                             mode='markers',
+                             marker=dict(color=ex_color(df['color'].iloc[0]), size=3,
+                                         opacity=1),
+                             marker_symbol=0,
+                             name='short signal',
                              showlegend=False))
 
-fig.add_trace(go.Scatter(x=df.index,
-                         y=df['long_f1'],
-                         fill=None,
-                         mode='lines',
-                         line_color='rgba(0, 0, 255, 0.5)',
-                         line=dict(color='black', width=4),
-                         name='long_f1'))
-
-fig.add_trace(go.Scatter(x=df.index,
-                         y=df['long_f2'],
-                         opacity=0.3,
-                         fill='tonexty',
-                         line=dict(width=2),
-                         line_color='rgba(0, 0, 255, 0.5)',
-                         mode='lines',
-                         fillcolor='rgba(0, 0, 255, 0.1)',
-
-                         name='long_f2'))
-
-fig.add_trace(go.Scatter(x=df.index,
-                         y=df['long_f3'],
-                         opacity=0.3,
-                         fill='tonexty',
-                         line=dict(width=2),
-                         line_color='rgba(0, 0, 255, 0.5)',
-                         mode='lines', fillcolor='rgba(0, 0, 255, 0.1)',
-                         name='long_f3'))
-
-fig.add_trace(go.Scatter(x=df.index,
-                         y=df['long_l100'],
-                         opacity=0.3,
-                         fill='tonexty',
-                         line=dict(width=2),
-                         line_color='rgba(0, 0, 255, 0.5)',
-                         mode='lines', fillcolor='rgba(0, 0, 255, 0.1)',
-                         name='long_l100'))
 
 fig.show()
+# }
 
-# # }
+print(np.round(df.head(10), 2))  # head data
 
-# print(np.round(df.head(10)))  # head data
-
-# print(np.round(df.tail(10), 2))  # tail data
+print(np.round(df.tail(10), 2))  # tail data
