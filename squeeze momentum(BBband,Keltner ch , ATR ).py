@@ -65,11 +65,11 @@ def TP(data: str = 'BTC'):  # hlc/3 (typical price)
     return(data['high']+data['low']+data['close'])/3
 
 
-def BOLU(data: str = "BTC", src: str = 'tp', length: int = 20, m: int = 2):  # upperband
+def BOLU(data: str = "BTC", src: str = 'close', length: int = 20, m: int = 1.5):  # upperband
     return SMA(data, src, 20)+((m)*data[src].rolling(window=length).std())
 
 
-def BOLD(data: str = 'BTC', src: str = 'tp', length: int = 20, m: int = 2):  # lower band
+def BOLD(data: str = 'BTC', src: str = 'close', length: int = 20, m: int = 1.5):  # lower band
     return SMA(data, 'close', 20)-((m)*data[src].rolling(window=length).std())
 # ​}
 
@@ -132,8 +132,8 @@ BTC = fetch('BTC/USDT', '1h', 1000)
 # { use bollinger band functions to calculate  bbband
 BTC['middelband'] = SMA(BTC, 'close', 20)
 BTC['tp'] = TP(BTC)
-BTC['upperband'] = BOLU(BTC, 'tp')
-BTC['lowerband'] = BOLD(BTC, 'tp')
+BTC['upperband'] = BOLU(BTC, 'close')
+BTC['lowerband'] = BOLD(BTC, 'close')
 # }
 
 
