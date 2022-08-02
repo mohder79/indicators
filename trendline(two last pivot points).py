@@ -166,7 +166,6 @@ BTC['pivot_line_high'] = pivot_line(
 BTC['trendline_high'] = trendline(
     BTC, 'pivothigh', 'pivothigh_bool', 'pivothighfill', 'pivot_line_high')
 
-print(BTC[['trendline_high', 'pivothigh', 'pivothighfill']])
 # }
 
 
