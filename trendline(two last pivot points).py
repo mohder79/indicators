@@ -2,7 +2,6 @@
 # website: mohder.com
 # email: mohder1379@gmail.com
 
-
 # { import the libraries
 import ccxt
 from datetime import datetime
