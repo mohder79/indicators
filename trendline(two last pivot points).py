@@ -26,7 +26,6 @@ exchange = ccxt.binance({
 })
 # }
 
-
 # { load data as function
 def fetch(symbol: str, timeframe: str, limit: int):
     print(f"Fetching {symbol} new bars for {datetime.now().isoformat()}")
