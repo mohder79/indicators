@@ -36,3 +36,12 @@
 ![newplot (12)](https://user-images.githubusercontent.com/102425717/179429363-7ee086f5-209b-4ac5-9649-3929cb840fb0.png) <br/>
 
 ![newplot (11)](https://user-images.githubusercontent.com/102425717/179429430-e775b169-1f0f-422e-a28f-c4755a109e75.png) <br/>
+
+
+
+![newplot](https://user-images.githubusercontent.com/102425717/187289144-0b0489e9-7c32-43be-9add-bb0724f2eeb5.png)
+
+
+
+
+
